@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <td>" . $row['Date_Time'] . "</td>
                                     <td> 
                                     <a href='view_sales_transaction.php?sales_transaction_id=".$row['sales_transaction_id']."'><button class='view btn btn-sm btn-primary' id=d".$row['sales_transaction_id'].">View</button></a>
-                                    <a href='managesales.php?sales_transaction_id=".$row['sales_transaction_id']."'><button class='edit btn btn-sm btn-primary' id=" . $row['sales_transaction_id'] . ">Edit</button></a>
+                                    <a href='manage_sales_return.php?return_id=".$row['return_id']."'><button class='edit btn btn-sm btn-primary' id=" . $row['sales_transaction_id'] . ">Edit</button></a>
                                     <button class='delete btn btn-sm btn-primary' id=d" . $row['sales_transaction_id'] . ">Delete</button>  
                                     </td>
                                     </tr>";

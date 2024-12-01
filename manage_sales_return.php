@@ -3,6 +3,7 @@ require_once "config.php";
 $insert = false;
 $update = false;
 $delete = false;
+$false_t = false;
 $p = 0;
 $return_id = $_GET['return_id'];
 $sales_transaction_id = 0;
@@ -18,23 +19,38 @@ while ($ro = mysqli_fetch_assoc($res)) {
 
 if (isset($_GET['delete'])) {
     $sno = $_GET['delete'];
+    $p_id = 0;
+    $quantity = 0;
+    $p_total = 0;
+    $pre_quantity = 0;
+    $pre_total = 0;
     // To update the values back to the previous transaction 
     $sql = "SELECT * FROM `sales_return_manage` WHERE sales_return_id=$sno";
-    $result = mysqli_query($conn , $sql);
-    while($row = mysqli_fetch_assoc($result)){
+    $result = mysqli_query($conn, $sql);
+    while ($row = mysqli_fetch_assoc($result)) {
         $sales_transaction_id = $row['sales_transaction_id'];
         $p_id = $row['p_id'];
         $quantity = $row['quantity'];
         $p_total = $row['p_total'];
     }
 
-    
+    $sql = "SELECT * FROM `sales` WHERE p_id=$p_id";
+    $result = mysqli_query($conn, $sql);
+    while ($row = mysqli_fetch_assoc($result)) {
+        $pre_total = $row['p_total'];
+        $pre_quantity = $row['quantity'];
+    }
+
+    $quantity = $quantity + $pre_quantity;
+    $p_total = $p_total + $pre_total;
+    $sql = "UPDATE `sales` SET `quantity`='$quantity',`p_total`='$p_total' WHERE p_id=$p_id";
+    $result = mysqli_query($conn, $sql);
 
     // Delete the transaction from the sales return table 
     $sql = "DELETE FROM `sales_return_manage` WHERE `sales_return_id` = $sno";
     $result = mysqli_query($conn, $sql);
-    if($result){
-    $delete = true;
+    if ($result) {
+        $delete = true;
     }
 }
 
@@ -81,23 +97,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Adding the products to the cart
 
-        $sql = "INSERT INTO `sales_return_manage` (`p_id`, `quantity`,`p_total`,`farmer_id`, `sales_transaction_id` , `return_id`) VALUES ('$p_id', '$product_quantity','$p_total','$farmers_id','$sales_transaction_id','$return_id')";
-        $result = mysqli_query($conn, $sql);
-
         $sql = "SELECT * FROM `sales` WHERE p_id=$p_id";
-        $result = mysqli_query($conn,$sql);
-        while($row = mysqli_fetch_assoc($result)){
+        $result = mysqli_query($conn, $sql);
+        while ($row = mysqli_fetch_assoc($result)) {
             $pre_total = $row['p_total'];
             $pre_quantity = $row['quantity'];
         }
-        $p_total = $pre_total - $p_total;
-        $product_quantity = $pre_quantity - $product_quantity;
+        if ($product_quantity <= $pre_quantity) {
 
-        $sql = "UPDATE `sales` SET `quantity`='$product_quantity',`p_total`='$p_total' WHERE p_id=$p_id";
-        $result = mysqli_query($conn, $sql);
+            $sql = "INSERT INTO `sales_return_manage` (`p_id`, `quantity`,`p_total`,`farmer_id`, `sales_transaction_id` , `return_id`) VALUES ('$p_id', '$product_quantity','$p_total','$farmers_id','$sales_transaction_id','$return_id')";
+            $result = mysqli_query($conn, $sql);
+            $p_total = $pre_total - $p_total;
+            $product_quantity = $pre_quantity - $product_quantity;
 
-        if ($result) {
+            $sql = "UPDATE `sales` SET `quantity`='$product_quantity',`p_total`='$p_total' WHERE p_id=$p_id";
+            $result = mysqli_query($conn, $sql);
             $insert = true;
+        } else {
+            $false_t = true;
+        }
+        if ($result) {
         } else {
             echo "The record was not inserted successfully because of this error ---> " . mysqli_error($conn);
         }
@@ -181,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php
             if ($insert) {
                 echo "<div class='alert alert-success alert-dismissible fade show' role='alert'>
-                            <strong>Success!</strong> The New Farmer has Been Added Successfully
+                            <strong>Success!</strong> Sales Return Products is Added and Updated
                             <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
                             <span aria-hidden='true'>×</span>
                             </button>
@@ -191,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php
             if ($delete) {
                 echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
-                        <strong>Success!</strong> Farmer has been deleted successfully
+                        <strong>Success!</strong> Sales Return Product has been deleted successfully
                         <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
                         <span aria-hidden='true'>×</span>
                         </button>
@@ -199,20 +218,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             ?>
             <?php
-            if ($update) {
-                echo "<div class='alert alert-success alert-dismissible fade show' role='alert'>
-                        <strong>Success!</strong> Sales Details has been updated successfully
-                        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
-                        <span aria-hidden='true'>×</span>
-                        </button>
-                    </div>";
+            if ($false_t) {
+                echo "<div class='alert alert-danger alert-dismissible fade show' role='alert'>
+                            <strong>False Details!</strong> Please check the Previous Sales Transaction <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+                            <span aria-hidden='true'>×</span>
+                            </button>
+                        </div>";
             }
             ?>
             <div class="products">
                 <div class="container my-4">
                     <h2>Update Sales Return</h2>
-                    <form action="manage_sales_return.php?return_id=<?php echo $return_id ?>"
-                        method="POST">
+                    <form action="manage_sales_return.php?return_id=<?php echo $return_id ?>" method="POST">
                         <div class="modal-body">
                             <div class="form-group">
                                 <label for="farmer_name">Product Name</label>
@@ -226,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         $p_idd = $row1['p_id'];
                                         $ss = "SELECT * FROM `products` WHERE p_id=$p_idd";
                                         $res = mysqli_query($conn, $ss);
-                                        while ($rr = mysqli_fetch_assoc($res)){
+                                        while ($rr = mysqli_fetch_assoc($res)) {
                                             echo '<option value="' . $rr['p_id'] . '">' . $rr['product_name'] . '</option>';
                                         }
                                     }
@@ -306,7 +323,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <th scope="col">Quantity</th>
                                 <th scope="col">Price</th>
                                 <th scope="col">Total</th>
-                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -336,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 }
                                 echo "</td>
                                     <td>" . $row['p_total'] . "</td>
-                                    <td><button class='delete btn btn-sm btn-warning' id=d" . $row['sales_item_id'] . ">Return All Items</button>  </td>
+                                    
                                     </tr>";
                             }
                             ?>
@@ -346,8 +362,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <hr>
             </div>
             <div class="flex-box">
-                <a href="Sales_transactions.php"><button class="btn btn-primary mx-4">Save</button></a>
-                <a href="Sales_transactions_cancel.php?sales_transaction_id=<?php echo $sales_transaction_id; ?>"><button
+                <a href="Sales_return.php"><button class="btn btn-primary mx-4">Save</button></a>
+                <a href="Sales_return_cancel.php?return_id=<?php echo $return_id; ?>"><button
                         class="btn btn-warning mx-4">Close</button></a>
             </div>
         </div>
