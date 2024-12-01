@@ -156,9 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                      
                                     echo "</td>
                                     <td>";
-                                    
                                     $s_t_id = $row['sales_transaction_id'];
-                                    $sqll = "SELECT * FROM `sales` WHERE sales_transaction_id=$s_t_id";
+                                    $sqll = "SELECT * FROM `sales_return_manage` WHERE sales_transaction_id=$s_t_id";
                                     $resultt = mysqli_query($conn,$sqll);
                                     $num = mysqli_num_rows($resultt);
                                     echo $num;
