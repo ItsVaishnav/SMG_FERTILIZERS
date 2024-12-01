@@ -1,3 +1,4 @@
+
 <?php
 require 'config.php'; 
 ?>
@@ -21,10 +22,13 @@ require 'config.php';
             ?>
             
             <div class="dashboard">
-                <div class="card">PO Records <span>3</span></div>
-                <div class="card">Receiving Records <span>7</span></div>
-                <div class="card">BO Records <span>4</span></div>
-                <div class="card">Return Records <span>1</span></div>
+                <div class="card">Return Records <span>
+                <?php 
+                        $sql = "SELECT * FROM `sales_return`";
+                        $result = mysqli_query($conn,$sql);
+                        echo mysqli_num_rows($result);
+                        ?>
+                </span></div>
                 <div class="card">Sales Records <span>
                 <?php 
                         $sql = "SELECT * FROM `sales_transactions`";

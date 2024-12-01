@@ -11,9 +11,9 @@ if (!$conn) {
 
 if (isset($_GET['delete'])) {
     $sno = $_GET['delete'];
-    $delete = true;
     $sql = "DELETE FROM `farmers` WHERE `farmer_id` = $sno";
     $result = mysqli_query($conn, $sql);
+    $delete = true;
 }
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['snoEdit'])) {

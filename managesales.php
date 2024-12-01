@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         while ($rowp = mysqli_fetch_assoc($resultp)) {
             $stock = $rowp['quantity'];
             $p_total = $rowp['price'] * $product_quantity;
+            $quantityy = $rowp['quantity'];
         }
         // Sql query to be executed
         $sql = "UPDATE `sales` SET `p_id` = '$p_id' , `quantity` = '$product_quantity' ,`p_total` = $p_total WHERE `sales`.`sales_item_id` = $sno";
